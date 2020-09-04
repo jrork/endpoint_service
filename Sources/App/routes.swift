@@ -1,14 +1,25 @@
-import Fluent
 import Vapor
+import Leaf
 
 func routes(_ app: Application) throws {
-    app.get { req in
-        return "It works!"
+    app.get { req -> EventLoopFuture<View> in
+        return Endpoint.query(on: req.db).all().flatMap {
+            endpoints in
+                return req.view.render("index", ["endpoints": endpoints])
+        }
     }
 
-    app.get("hello") { req -> String in
-        return "Hello, world!"
+    app.post("add") { req -> EventLoopFuture<Response> in
+        let data = try req.content.decode(Endpoint.self)
+        return data.create(on: req.db).map { data in
+            return req.redirect(to: "/")
+        }
     }
-
-    try app.register(collection: TodoController())
+    
+    app.get("endpoints") { req -> EventLoopFuture<[Endpoint]> in
+        print("returning endpoints")
+        return Endpoint.query(on: req.db).all()
+    }
 }
+ 
+ 

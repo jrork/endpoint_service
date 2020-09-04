@@ -1,21 +1,23 @@
+import Vapor
+import Leaf
 import Fluent
 import FluentPostgresDriver
-import Vapor
 
 // configures your application
 public func configure(_ app: Application) throws {
     // uncomment to serve files from /Public folder
     // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
-    app.databases.use(.postgres(
-        hostname: Environment.get("DATABASE_HOST") ?? "localhost",
-        username: Environment.get("DATABASE_USERNAME") ?? "vapor_username",
-        password: Environment.get("DATABASE_PASSWORD") ?? "vapor_password",
-        database: Environment.get("DATABASE_NAME") ?? "vapor_database"
-    ), as: .psql)
-
-    app.migrations.add(CreateTodo())
-
     // register routes
     try routes(app)
+    //app.leaf.configuration = LeafConfiguration(rootDirectory: "/Users/jrork1/Documents/xcode/tryLeafWithBootstrap")
+    app.views.use(.leaf)
+
+//    app.databases.use(.postgres(hostname: "localhost", username: "vapor", password: "vapor", database: "vapor"), as: .psql)
+    try app.databases.use(.postgres(url: Application.databaseUrl), as: .psql)
+    app.migrations.add(Endpoint.CreateEndpoint())
+}
+
+extension Application {
+    static let databaseUrl = URL(string: Environment.get("DB_URL")!)!
 }
